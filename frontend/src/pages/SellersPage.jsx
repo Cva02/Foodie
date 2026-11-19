@@ -1,17 +1,22 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star } from "lucide-react";
+import { Pencil, Plus, Star, Trash2 } from "lucide-react";
 import { ErrorBox, Loading } from "../components/State.jsx";
 import Toolbar from "../components/Toolbar.jsx";
 import Avatar from "../components/Avatar.jsx";
 import Badge from "../components/Badge.jsx";
 import Photo from "../components/Photo.jsx";
+import SellerForm from "../components/SellerForm.jsx";
+import ConfirmDialog from "../components/ConfirmDialog.jsx";
+import { api } from "../api.js";
 import { inr, useFetch } from "../utils.js";
 
 export default function SellersPage() {
-  const { data, error, loading } = useFetch("/api/sellers");
+  const { data, error, loading, reload } = useFetch("/api/sellers");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
+  const [form, setForm] = useState(null);        // null | "new" | seller being edited
+  const [removing, setRemoving] = useState(null); // seller waiting for delete confirmation
   const navigate = useNavigate();
 
   const rows = useMemo(() => {
@@ -30,6 +35,13 @@ export default function SellersPage() {
 
   return (
     <>
+      <div className="page-actions">
+        <span className="muted">{data.length} seller{data.length === 1 ? "" : "s"} saved in the database</span>
+        <button className="btn btn-danger" onClick={() => setForm("new")}>
+          <Plus size={16} /> Add seller
+        </button>
+      </div>
+
       <div className="card">
         <Toolbar
           query={query}
@@ -68,10 +80,42 @@ export default function SellersPage() {
                   <Avatar src={s.ownerAvatar} name={s.ownerName} size={26} />
                   <span className="small">{s.ownerName}</span>
                 </div>
+                <div className="entity-actions" onClick={(e) => e.stopPropagation()}>
+                  <button className="btn btn-outline btn-sm" onClick={() => setForm(s)}>
+                    <Pencil size={14} /> Edit
+                  </button>
+                  <button className="btn btn-outline btn-sm btn-delete" onClick={() => setRemoving(s)}>
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {form && (
+        <SellerForm
+          seller={form === "new" ? null : form}
+          onClose={() => setForm(null)}
+          onSaved={() => {
+            setForm(null);
+            reload();
+          }}
+        />
+      )}
+
+      {removing && (
+        <ConfirmDialog
+          title="Delete seller"
+          message={`Delete "${removing.name}" and its menu from the database? This cannot be undone.`}
+          onClose={() => setRemoving(null)}
+          onConfirm={async () => {
+            await api.delete(`/api/sellers/${removing.id}`);
+            setRemoving(null);
+            reload();
+          }}
+        />
       )}
     </>
   );

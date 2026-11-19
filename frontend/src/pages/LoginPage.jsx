@@ -1,60 +1,97 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { LockKeyhole } from "lucide-react";
-import Logo from "../components/Logo.jsx";
-
-const DEMO_EMAIL = "admin@foodie.in";
-const DEMO_PASSWORD = "foodie123";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
+import FoodieBrand from "../components/FoodieBrand.jsx";
+import PasswordResetForm from "../components/PasswordResetForm.jsx";
+import { api } from "../api.js";
+import { auth, useAuth } from "../auth.js";
 
 export default function LoginPage() {
+  const { loggedIn } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState(DEMO_EMAIL);
+  const location = useLocation();
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
 
-  const submit = (event) => {
-    event.preventDefault();
-    if (email.trim().toLowerCase() !== DEMO_EMAIL || password !== DEMO_PASSWORD) {
-      setError("That email or password doesn’t match the demo account.");
-      return;
+  const from = location.state?.from || "/";
+  if (loggedIn) return <Navigate to={from} replace />;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const { token, username: name } = await api.post("/api/auth/login", {
+        username: identifier,
+        password,
+      });
+      auth.setSession(token, name);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
     }
-    sessionStorage.setItem("foodie-admin-session", "demo");
-    navigate("/", { replace: true });
   };
 
   return (
-    <main className="login-page">
-      <section className="login-card">
-        <div className="login-brand">
-          <Logo />
-          <div>
-            <div className="brand-name">foodie</div>
-            <div className="brand-sub">Admin Console</div>
-          </div>
-        </div>
-        <div className="login-heading">
-          <span className="login-icon"><LockKeyhole size={19} /></span>
-          <div>
-            <h1>Welcome back</h1>
-            <p className="muted">Sign in to manage your Foodie dashboard.</p>
-          </div>
-        </div>
-        <form className="login-form" onSubmit={submit}>
-          <label>
-            Email address
-            <input type="email" autoComplete="username" value={email}
-              onChange={(event) => setEmail(event.target.value)} required />
-          </label>
-          <label>
-            Password
-            <input type="password" autoComplete="current-password" value={password}
-              onChange={(event) => setPassword(event.target.value)} required />
-          </label>
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="btn btn-danger login-submit" type="submit">Sign in</button>
-        </form>
-        
-      </section>
-    </main>
+    <div className="auth-page auth-page-login">
+      <div className="auth-side">
+        <FoodieBrand className="auth-brand" />
+        <span className="auth-side-kicker">FOODIE DELIVERY PLATFORM</span>
+        <h1>Good food.<br />Made simple.</h1>
+        <p>Admin console</p>
+        <span className="auth-side-note">Manage customers, restaurants, riders and live orders from one secure place.</span>
+      </div>
+
+      <div className="auth-main">
+        {resettingPassword ? (
+          <PasswordResetForm
+            onCancel={() => setResettingPassword(false)}
+            onComplete={() => setResettingPassword(false)} />
+        ) : (
+          <form className="auth-card" onSubmit={submit}>
+            <div className="auth-card-eyebrow"><span /> SECURE SIGN IN</div>
+            <h2>Admin login</h2>
+            <p className="muted">Sign in to manage Foodie.</p>
+
+            <label className="field">
+              <span className="field-label">Username</span>
+              <span className="input-icon">
+                <User size={16} />
+                <input type="text" value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  autoComplete="username" placeholder="Admin username" autoFocus />
+              </span>
+            </label>
+
+            <label className="field">
+              <span className="field-label">Password</span>
+              <span className="input-icon">
+                <Lock size={16} />
+                <input type={show ? "text" : "password"} value={password}
+                  onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+                <button type="button" className="eye" onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"}>
+                  {show ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </span>
+            </label>
+
+            {error && <div className="form-error" role="alert">{error}</div>}
+
+            <button className="btn btn-danger btn-block" type="submit" disabled={busy || !identifier || !password}>
+              {busy ? "Signing in…" : "Log in"}
+            </button>
+            <button type="button" className="password-reset-link"
+              onClick={() => { setResettingPassword(true); setError(""); }}>
+              Forgot password?
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }

@@ -8,10 +8,11 @@ import com.foodie.admin.model.RiderDocument;
 import com.foodie.admin.model.Seller;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * In-memory dummy data for the admin dashboard.
@@ -22,10 +23,10 @@ public class DummyData {
 
     private static final String PORTRAIT = "https://randomuser.me/api/portraits/";
 
-    public final Map<String, Customer> customers = new LinkedHashMap<>();
+    public final Map<String, Customer> customers = new ConcurrentHashMap<>();
     public final Map<String, Seller> sellers = new LinkedHashMap<>();
     public final Map<String, Rider> riders = new LinkedHashMap<>();
-    public final List<Order> orders = new ArrayList<>();
+    public final List<Order> orders = new CopyOnWriteArrayList<>();
 
     public DummyData() {
         seed();
@@ -138,7 +139,7 @@ public class DummyData {
                     "S" + (si + 1), s[si][0],
                     hasRider ? "R" + (ri + 1) : null,
                     hasRider ? r[ri][0] : null,
-                    items, amount, status, payments[i % payments.length], placedAt));
+                    items, amount, status, payments[i % payments.length], c[ci][5] + ", " + c[ci][4], placedAt));
         }
 
         // ------------------------------------------------------------------ customers

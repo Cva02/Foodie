@@ -41,7 +41,13 @@ export default function Overview() {
         <StatCard icon={ShoppingBag} label="Orders" value={d.totalOrders} hint={`${d.liveOrders} in progress`} tone="blue" />
         <StatCard icon={Users} label="Customers" value={d.customers} tone="green" />
         <StatCard icon={Store} label="Sellers" value={d.sellers} tone="amber" />
-
+        {/* <StatCard
+          icon={Bike}
+          label="Pending approvals"
+          value={d.pendingApprovals}
+          hint="Sellers + riders"
+          tone="purple"
+        /> */}
       </div>
 
       <div className="section-grid">

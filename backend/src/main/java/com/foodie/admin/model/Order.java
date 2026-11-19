@@ -10,7 +10,8 @@ public record Order(
         String riderName,
         String items,
         double amount,
-        String status,          // DELIVERED | ON_THE_WAY | PREPARING | AWAITING_RIDER | CANCELLED
+        String status,          // AWAITING_SELLER | PREPARING | AWAITING_RIDER | ON_THE_WAY | DELIVERED | CANCELLED
         String payment,         // UPI | CARD | CASH ON DELIVERY
+        String address,
         String placedAt) {
 }

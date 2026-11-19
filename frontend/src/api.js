@@ -1,25 +1,61 @@
+import { auth } from "./auth.js";
+
 // Thin wrapper around fetch for the Spring Boot admin API.
-async function request(url, options) {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
-    try {
-      const body = await res.json();
-      if (body.message) message = body.message;
-    } catch (_) {
-      /* ignore */
-    }
-    throw new Error(message);
+// Adds the admin's session token to every call and logs the admin out if the server says it expired.
+async function request(url, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  const token = auth.getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (options.body !== undefined && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
   }
-  return res.json();
+
+  const res = await fetch(url, { ...options, headers });
+
+  // Session expired / server restarted -> back to the login page (RequireAuth does the redirect).
+  if (res.status === 401 && !url.startsWith("/api/auth/login")) auth.clear();
+
+  const text = await res.text();
+  let body = null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch (_) {
+    /* not JSON */
+  }
+
+  if (!res.ok) throw new Error((body && body.message) || `Request failed (${res.status})`);
+  return body;
 }
+
+async function requestBlob(url) {
+  const headers = {};
+  const token = auth.getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(url, { headers });
+  if (res.status === 401) auth.clear();
+  if (!res.ok) {
+    const text = await res.text();
+    let body = null;
+    try {
+      body = text ? JSON.parse(text) : null;
+    } catch (_) {
+      /* not JSON */
+    }
+    throw new Error((body && body.message) || `Request failed (${res.status})`);
+  }
+  return res.blob();
+}
+
+const withBody = (method) => (url, body) =>
+  request(url, { method, body: body === undefined ? undefined : JSON.stringify(body) });
 
 export const api = {
   get: (url) => request(url),
-  patch: (url) => request(url, { method: "PATCH" }),
-  patchJson: (url, body) => request(url, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  }),
+  getBlob: requestBlob,
+  post: withBody("POST"),
+  postForm: (url, body) => request(url, { method: "POST", body }),
+  put: withBody("PUT"),
+  patch: withBody("PATCH"),
+  delete: (url) => request(url, { method: "DELETE" }),
 };

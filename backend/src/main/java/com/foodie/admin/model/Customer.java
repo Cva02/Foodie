@@ -17,9 +17,4 @@ public record Customer(
         return new Customer(id, name, email, phone, avatar, city, address, joinedOn,
                 newStatus, totalOrders, totalSpent);
     }
-
-    public Customer withProfile(CustomerProfileUpdate profile) {
-        return new Customer(id, profile.name(), profile.email(), profile.phone(), avatar,
-                profile.city(), profile.address(), joinedOn, status, totalOrders, totalSpent);
-    }
 }

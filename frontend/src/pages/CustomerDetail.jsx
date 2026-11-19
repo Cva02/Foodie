@@ -5,7 +5,6 @@ import { ErrorBox, Loading } from "../components/State.jsx";
 import BackLink from "../components/BackLink.jsx";
 import Avatar from "../components/Avatar.jsx";
 import Badge from "../components/Badge.jsx";
-import EditableProfile from "../components/EditableProfile.jsx";
 import InfoRow from "../components/InfoRow.jsx";
 import OrdersTable from "../components/OrdersTable.jsx";
 import { api } from "../api.js";
@@ -45,19 +44,10 @@ export default function CustomerDetail() {
             <Badge value={c.status} />
           </div>
           <div className="muted">Customer ID · {c.id}</div>
-          <EditableProfile
-            profile={c}
-            endpoint={`/api/customers/${id}/profile`}
-            onSaved={reload}
-            fields={[
-              { name: "name", label: "Full name" },
-              { name: "email", label: "Email", type: "email", icon: Mail },
-              { name: "phone", label: "Phone", icon: Phone },
-              { name: "address", label: "Delivery address", icon: MapPin },
-              { name: "city", label: "City" },
-            ]}
-          />
           <div className="info-grid">
+            <InfoRow icon={Mail} label="Email">{c.email}</InfoRow>
+            <InfoRow icon={Phone} label="Phone">{c.phone}</InfoRow>
+            <InfoRow icon={MapPin} label="Delivery address">{c.address}</InfoRow>
             <InfoRow icon={Calendar} label="Member since">{c.joinedOn}</InfoRow>
           </div>
         </div>
