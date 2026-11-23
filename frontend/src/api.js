@@ -1,61 +1,134 @@
+
 import { auth } from "./auth.js";
 
-// Thin wrapper around fetch for the Spring Boot admin API.
-// Adds the admin's session token to every call and logs the admin out if the server says it expired.
+const CUSTOMER_TOKEN_KEY = "foodie_token";
+
+export const getToken = () => localStorage.getItem(CUSTOMER_TOKEN_KEY);
+
+export const setToken = (token) => {
+  if (token) {
+    localStorage.setItem(CUSTOMER_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+  }
+};
+
+function isCustomerRequest(url) {
+  return !url.startsWith("/api/") ||
+    url.startsWith("/api/customer/") ||
+    url.startsWith("/api/users/") ||
+    url.startsWith("/api/notifications");
+}
+
+function getApiUrl(url) {
+  return url.startsWith("/api/") ? url : `/api${url}`;
+}
+
 async function request(url, options = {}) {
+  const customerRequest = isCustomerRequest(url);
+  const token = customerRequest ? getToken() : auth.getToken();
+
   const headers = { ...(options.headers || {}) };
-  const token = auth.getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   if (options.body !== undefined && !(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(url, { ...options, headers });
+  let res;
 
-  // Session expired / server restarted -> back to the login page (RequireAuth does the redirect).
-  if (res.status === 401 && !url.startsWith("/api/auth/login")) auth.clear();
+  try {
+    res = await fetch(getApiUrl(url), { ...options, headers });
+  } catch {
+    throw new Error("Cannot reach the server. Is the Spring Boot backend running on port 8080?");
+  }
+
+  if (res.status === 401 && token) {
+    if (customerRequest) {
+      window.dispatchEvent(new Event("foodie-unauthorized"));
+    } else if (!url.startsWith("/api/auth/login")) {
+      auth.clear();
+    }
+  }
 
   const text = await res.text();
   let body = null;
+
   try {
     body = text ? JSON.parse(text) : null;
-  } catch (_) {
-    /* not JSON */
+  } catch {
+    // Response is not JSON.
   }
 
-  if (!res.ok) throw new Error((body && body.message) || `Request failed (${res.status})`);
+  if (!res.ok) {
+    throw new Error(
+      (body && body.message) || `Request failed (${res.status})`
+    );
+  }
+
   return body;
 }
 
 async function requestBlob(url) {
-  const headers = {};
   const token = auth.getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const headers = {};
 
-  const res = await fetch(url, { headers });
-  if (res.status === 401) auth.clear();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(getApiUrl(url), { headers });
+
+  if (res.status === 401) {
+    auth.clear();
+  }
+
   if (!res.ok) {
     const text = await res.text();
     let body = null;
+
     try {
       body = text ? JSON.parse(text) : null;
-    } catch (_) {
-      /* not JSON */
+    } catch {
+      // Response is not JSON.
     }
-    throw new Error((body && body.message) || `Request failed (${res.status})`);
+
+    throw new Error(
+      (body && body.message) || `Request failed (${res.status})`
+    );
   }
+
   return res.blob();
 }
 
 const withBody = (method) => (url, body) =>
-  request(url, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+  request(url, {
+    method,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
 
 export const api = {
   get: (url) => request(url),
+
   getBlob: requestBlob,
-  post: withBody("POST"),
-  postForm: (url, body) => request(url, { method: "POST", body }),
+
+  post: (url, body) =>
+    request(url, {
+      method: "POST",
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
+
+  postForm: (url, body) =>
+    request(url, { method: "POST", body }),
+
   put: withBody("PUT"),
+
   patch: withBody("PATCH"),
+
   delete: (url) => request(url, { method: "DELETE" }),
+
+  del: (url) => request(url, { method: "DELETE" }),
 };

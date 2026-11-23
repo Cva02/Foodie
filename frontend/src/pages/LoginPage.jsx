@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
 
-  const from = location.state?.from || "/";
+  const from = location.state?.from || "/admin";
   if (loggedIn) return <Navigate to={from} replace />;
 
   const submit = async (e) => {
