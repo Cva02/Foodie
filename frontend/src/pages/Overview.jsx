@@ -12,21 +12,21 @@ export default function Overview() {
 
   const sections = [
     {
-      to: "/customers",
+      to: "/admin/customers",
       icon: Users,
       title: "Customers",
       text: `${d.customers} registered customers`,
       cta: "View all customers",
     },
     {
-      to: "/sellers",
+      to: "/admin/sellers",
       icon: Store,
       title: "Sellers",
       text: `${d.sellers} restaurants on Foodie`,
       cta: "View all sellers",
     },
     {
-      to: "/riders",
+      to: "/admin/riders",
       icon: Bike,
       title: "Riders",
       text: `${d.ridersOnline} of ${d.riders} riders working now`,

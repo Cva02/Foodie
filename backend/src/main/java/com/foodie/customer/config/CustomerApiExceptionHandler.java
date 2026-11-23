@@ -9,7 +9,7 @@ import java.util.Map;
 
 /** Every error reaches the React app as {"message": "..."}. */
 @RestControllerAdvice
-public class ApiExceptionHandler {
+public class CustomerApiExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> status(ResponseStatusException e) {

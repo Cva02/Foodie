@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
@@ -15,10 +16,14 @@ export default function CustomersPage() {
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
+
     return (data || []).filter(
       (c) =>
         (filter === "ALL" || c.status === filter) &&
-        (!q || [c.name, c.email, c.phone, c.address].some((v) => v.toLowerCase().includes(q)))
+        (!q ||
+          [c.name, c.email, c.phone, c.address].some((v) =>
+            (v || "").toLowerCase().includes(q)
+          ))
     );
   }, [data, query, filter]);
 
@@ -41,6 +46,7 @@ export default function CustomersPage() {
           { value: "BLOCKED", label: "Blocked", count: count("BLOCKED") },
         ]}
       />
+
       {rows.length === 0 ? (
         <div className="empty">No customers match this filter.</div>
       ) : (
@@ -59,7 +65,10 @@ export default function CustomersPage() {
             </thead>
             <tbody>
               {rows.map((c) => (
-                <tr key={c.id} onClick={() => navigate(`/customers/${c.id}`)}>
+                <tr
+                  key={c.id}
+                  onClick={() => navigate(`/admin/customers/${c.id}`)}
+                >
                   <td>
                     <div className="person">
                       <Avatar src={c.avatar} name={c.name} />

@@ -45,7 +45,7 @@ export default function SellerDetail() {
 
   return (
     <>
-      <BackLink to="/sellers">All sellers</BackLink>
+      <BackLink to="/admin/sellers">All sellers</BackLink>
       {statusError && <ErrorBox message={statusError} />}
 
       <div className="card banner-card">
@@ -171,7 +171,7 @@ export default function SellerDetail() {
           onClose={() => setRemoving(false)}
           onConfirm={async () => {
             await api.delete(`/api/sellers/${id}`);
-            navigate("/sellers", { replace: true });
+            navigate("/admin/sellers", { replace: true });
           }}
         />
       )}

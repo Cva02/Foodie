@@ -1,5 +1,12 @@
 package com.foodie.admin.service;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Comparator;
+import com.foodie.customer.model.OrderEntity;
+import com.foodie.customer.model.OrderItem;
+import com.foodie.customer.repo.Repos.OrderRepo;
+import com.foodie.customer.repo.Repos.UserRepo;
 import com.foodie.admin.data.DummyData;
 import com.foodie.admin.model.Customer;
 import com.foodie.admin.model.DashboardStats;
@@ -39,19 +46,24 @@ public class AdminService {
 
     /** Demo customers/orders are combined with persistent portal accounts and orders. */
     private final DummyData data;
-    private final SellerRepository sellerRepo;
-    private final RiderRepository riderRepo;
-    private final FoodOrderRepository foodOrderRepo;
-    private final PortalAccountRepository portalAccountRepo;
+private final SellerRepository sellerRepo;
+private final RiderRepository riderRepo;
+private final FoodOrderRepository foodOrderRepo;
+private final PortalAccountRepository portalAccountRepo;
+private final OrderRepo customerOrderRepo;
+private final UserRepo customerUserRepo;
 
     public AdminService(DummyData data, SellerRepository sellerRepo, RiderRepository riderRepo,
-                        FoodOrderRepository foodOrderRepo, PortalAccountRepository portalAccountRepo) {
-        this.data = data;
-        this.sellerRepo = sellerRepo;
-        this.riderRepo = riderRepo;
-        this.foodOrderRepo = foodOrderRepo;
-        this.portalAccountRepo = portalAccountRepo;
-    }
+                    FoodOrderRepository foodOrderRepo, PortalAccountRepository portalAccountRepo,
+                    OrderRepo customerOrderRepo, UserRepo customerUserRepo) {
+    this.data = data;
+    this.sellerRepo = sellerRepo;
+    this.riderRepo = riderRepo;
+    this.foodOrderRepo = foodOrderRepo;
+    this.portalAccountRepo = portalAccountRepo;
+    this.customerOrderRepo = customerOrderRepo;
+    this.customerUserRepo = customerUserRepo;
+}
 
     // ---------------------------------------------------------------- dashboard
     public synchronized DashboardStats dashboard() {
@@ -233,14 +245,85 @@ public class AdminService {
         return allOrders().stream().filter(p).toList();
     }
 
-    private List<Order> allOrders() {
-        Map<String, Order> combined = new LinkedHashMap<>();
-        foodOrderRepo.findAll().stream()
-                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-                .forEach(order -> combined.put(order.getId(), order.toOrder()));
-        data.orders.forEach(order -> combined.putIfAbsent(order.id(), order));
-        return new ArrayList<>(combined.values());
-    }
+    
+private List<Order> allOrders() {
+    Map<String, Order> combined = new LinkedHashMap<>();
+    Map<String, Instant> orderTimes = new LinkedHashMap<>();
+
+    // Existing Admin orders
+    foodOrderRepo.findAll().forEach(order -> {
+        combined.put(order.getId(), order.toOrder());
+        orderTimes.put(order.getId(), order.getCreatedAt());
+    });
+
+    // Customer portal orders
+    customerOrderRepo.findAll().forEach(order -> {
+        String id = "C-" + order.getId();
+        String customerId = String.valueOf(order.getUserId());
+
+        String customerName = customerUserRepo.findById(order.getUserId())
+                .map(user -> user.getName())
+                .orElse("Customer #" + customerId);
+
+        String riderName = order.getRiderId() == null ? null :
+                riderRepo.findById(order.getRiderId())
+                        .map(Rider::getName)
+                        .orElse(null);
+
+        String items = order.getItems().stream()
+                .map(item -> item.getQty() + "x " + item.getName())
+                .collect(java.util.stream.Collectors.joining(", "));
+
+        Instant createdAt = order.getCreatedAt();
+
+        String placedAt = createdAt == null ? "" :
+                DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", Locale.ENGLISH)
+                        .withZone(ZoneId.systemDefault())
+                        .format(createdAt);
+
+        String status = switch (order.getStatus()) {
+            case PLACED -> "PLACED";
+            case CONFIRMED -> "ACCEPTED";
+            case PREPARING -> "PREPARING";
+            case OUT_FOR_DELIVERY -> "ON_THE_WAY";
+            case DELIVERED -> "DELIVERED";
+            case CANCELLED -> "CANCELLED";
+        };
+
+        Order adminOrder = new Order(
+                id,
+                customerId,
+                customerName,
+                null,
+                order.getRestaurantName(),
+                order.getRiderId(),
+                riderName,
+                items,
+                order.getTotal(),
+                status,
+                order.getPaymentMethod(),
+                order.getAddress(),
+                placedAt
+        );
+
+        combined.put(id, adminOrder);
+        orderTimes.put(id, createdAt);
+    });
+
+    // Existing demo orders
+    data.orders.forEach(order -> combined.putIfAbsent(order.id(), order));
+
+    // Newest orders first
+    List<Order> result = new ArrayList<>(combined.values());
+
+    result.sort(Comparator.comparing(
+            (Order order) -> orderTimes.get(order.id()),
+            Comparator.nullsLast(Comparator.reverseOrder())
+    ));
+
+    return result;
+}
+
 
     private Customer customerById(String id) {
         Customer customer = data.customers.get(id);

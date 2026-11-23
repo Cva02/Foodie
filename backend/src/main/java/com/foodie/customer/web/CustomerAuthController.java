@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/customer/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class CustomerAuthController {
     private final AccountService accounts;
 
     @PostMapping("/signup")

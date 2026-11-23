@@ -1,5 +1,6 @@
 package com.foodie.customer.service;
 
+import com.foodie.admin.repository.RiderRepository;
 import com.foodie.customer.dto.Dtos.*;
 import com.foodie.customer.model.*;
 import com.foodie.customer.repo.Repos.*;
@@ -24,7 +25,7 @@ public class OrderService {
     private final OrderRepo orders;
     private final RestaurantRepo restaurants;
     private final MenuItemRepo menu;
-    private final RiderRepo riders;
+    private final RiderRepository riders;
     private final NotificationService notifications;
 
     @Transactional

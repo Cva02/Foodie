@@ -1,3 +1,4 @@
+
 package com.foodie.customer.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -7,23 +8,30 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebConfig implements WebMvcConfigurer {
-    private final AuthInterceptor auth;
+public class CustomerWebConfig implements WebMvcConfigurer {
+    private final CustomerAuthInterceptor auth;
     private final String[] origins;
 
-    public WebConfig(AuthInterceptor auth, @Value("${foodie.cors.origins}") String[] origins) {
+    public CustomerWebConfig(CustomerAuthInterceptor auth, @Value("${foodie.cors.origins}") String[] origins) {
         this.auth = auth;
         this.origins = origins;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(auth).addPathPatterns("/api/**");
+        registry.addInterceptor(auth)
+                .addPathPatterns(
+                        "/api/customer/**",
+                        "/api/users/**",
+                        "/api/notifications/**",
+                        "/api/restaurants/**"
+                );
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**").allowedOrigins(origins)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedHeaders("*");
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*");
     }
 }

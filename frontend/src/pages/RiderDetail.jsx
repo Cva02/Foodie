@@ -46,7 +46,7 @@ export default function RiderDetail() {
 
   return (
     <>
-      <BackLink to="/riders">All riders</BackLink>
+      <BackLink to="/admin/riders">All riders</BackLink>
       {statusError && <ErrorBox message={statusError} />}
 
       <div className="card profile">
@@ -161,7 +161,7 @@ export default function RiderDetail() {
           onClose={() => setRemoving(false)}
           onConfirm={async () => {
             await api.delete(`/api/riders/${id}`);
-            navigate("/riders", { replace: true });
+            navigate("/admin/riders", { replace: true });
           }}
         />
       )}

@@ -18,7 +18,7 @@ public class OrderEntity {
     @Column(nullable = false)
     private Long restaurantId;
     private String restaurantName;
-    private Long riderId;
+    private String riderId;
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.PLACED;
     private int itemTotal;

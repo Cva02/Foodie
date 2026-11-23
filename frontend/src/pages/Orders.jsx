@@ -42,7 +42,7 @@ export default function Orders() {
   const [reason, setReason] = useState(REASONS[0]);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(() => api.get('/orders').then(setOrders).catch((e) => setError(e.message)), []);
+  const load = useCallback(() => api.get('/customer/orders').then(setOrders).catch((e) => setError(e.message)), []);
 
   useEffect(() => {
     load();
@@ -53,7 +53,7 @@ export default function Orders() {
   const confirmCancel = async () => {
     setBusy(true);
     try {
-      await api.post(`/orders/${cancelling.id}/cancel`, { reason });
+      await api.post(`/customer/orders/${cancelling.id}/cancel`, { reason });
       toast(`Order #${cancelling.id} cancelled`, 'ok');
       window.dispatchEvent(new Event('foodie-notifications-changed'));
       setCancelling(null);

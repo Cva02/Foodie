@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Plus, Star, Trash2 } from "lucide-react";
@@ -15,16 +16,20 @@ export default function SellersPage() {
   const { data, error, loading, reload } = useFetch("/api/sellers");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
-  const [form, setForm] = useState(null);        // null | "new" | seller being edited
-  const [removing, setRemoving] = useState(null); // seller waiting for delete confirmation
+  const [form, setForm] = useState(null);
+  const [removing, setRemoving] = useState(null);
   const navigate = useNavigate();
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
+
     return (data || []).filter(
       (s) =>
         (filter === "ALL" || s.status === filter) &&
-        (!q || [s.name, s.ownerName, s.cuisine, s.address].some((v) => v.toLowerCase().includes(q)))
+        (!q ||
+          [s.name, s.ownerName, s.cuisine, s.address].some((v) =>
+            (v || "").toLowerCase().includes(q)
+          ))
     );
   }, [data, query, filter]);
 
@@ -36,7 +41,9 @@ export default function SellersPage() {
   return (
     <>
       <div className="page-actions">
-        <span className="muted">{data.length} seller{data.length === 1 ? "" : "s"} saved in the database</span>
+        <span className="muted">
+          {data.length} seller{data.length === 1 ? "" : "s"} saved in the database
+        </span>
         <button className="btn btn-danger" onClick={() => setForm("new")}>
           <Plus size={16} /> Add seller
         </button>
@@ -63,28 +70,52 @@ export default function SellersPage() {
       ) : (
         <div className="cards-grid">
           {rows.map((s) => (
-            <div key={s.id} className="entity-card" onClick={() => navigate(`/sellers/${s.id}`)}>
+            <div
+              key={s.id}
+              className="entity-card"
+              onClick={() => navigate(`/admin/sellers/${s.id}`)}
+            >
               <Photo src={s.image} alt={s.name} className="cover">
-                <div className="cover-badge"><Badge value={s.status} /></div>
-                <div className={`open-pill ${s.open ? "open" : "closed"}`}>{s.open ? "Open" : "Closed"}</div>
+                <div className="cover-badge">
+                  <Badge value={s.status} />
+                </div>
+                <div className={`open-pill ${s.open ? "open" : "closed"}`}>
+                  {s.open ? "Open" : "Closed"}
+                </div>
               </Photo>
+
               <div className="entity-body">
                 <h3>{s.name}</h3>
                 <div className="muted small">{s.cuisine}</div>
+
                 <div className="entity-row">
-                  <span className="rating"><Star size={14} fill="currentColor" /> {s.rating > 0 ? s.rating.toFixed(1) : "New"}</span>
+                  <span className="rating">
+                    <Star size={14} fill="currentColor" />{" "}
+                    {s.rating > 0 ? s.rating.toFixed(1) : "New"}
+                  </span>
                   <span className="muted small">{s.totalOrders} orders</span>
                   <span className="strong small">{inr(s.revenue)}</span>
                 </div>
+
                 <div className="owner">
                   <Avatar src={s.ownerAvatar} name={s.ownerName} size={26} />
                   <span className="small">{s.ownerName}</span>
                 </div>
-                <div className="entity-actions" onClick={(e) => e.stopPropagation()}>
-                  <button className="btn btn-outline btn-sm" onClick={() => setForm(s)}>
+
+                <div
+                  className="entity-actions"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setForm(s)}
+                  >
                     <Pencil size={14} /> Edit
                   </button>
-                  <button className="btn btn-outline btn-sm btn-delete" onClick={() => setRemoving(s)}>
+                  <button
+                    className="btn btn-outline btn-sm btn-delete"
+                    onClick={() => setRemoving(s)}
+                  >
                     <Trash2 size={14} /> Delete
                   </button>
                 </div>

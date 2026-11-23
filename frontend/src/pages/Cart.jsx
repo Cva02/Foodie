@@ -96,7 +96,7 @@ export default function Cart() {
 
     setCouponBusy(true);
     try {
-      await api.post('/orders/coupons/validate', {
+      await api.post('/customer/orders/coupons/validate', {
         couponCode: coupon.code,
         restaurantId: cart.restaurant.id,
         items: list.map((item) => ({ menuItemId: item.id, qty: item.qty })),
@@ -118,7 +118,7 @@ export default function Cart() {
     setBusy(true);
     try {
       localStorage.setItem('foodie_pay', pay);
-      const order = await api.post('/orders', {
+      const order = await api.post('/customer/orders', {
         restaurantId: cart.restaurant.id,
         items: list.map((i) => ({ menuItemId: i.id, qty: i.qty })),
         address: [door.trim(), chosen.line].filter(Boolean).join(', '),

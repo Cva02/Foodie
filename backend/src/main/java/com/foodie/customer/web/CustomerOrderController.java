@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/customer/orders")
 @RequiredArgsConstructor
-public class OrderController {
+public class CustomerOrderController {
     private final OrderService orders;
 
     @PostMapping

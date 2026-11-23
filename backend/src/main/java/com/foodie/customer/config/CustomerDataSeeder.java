@@ -2,25 +2,24 @@ package com.foodie.customer.config;
 
 import com.foodie.customer.model.MenuItem;
 import com.foodie.customer.model.Restaurant;
-import com.foodie.customer.model.Rider;
+
 import com.foodie.customer.repo.Repos.MenuItemRepo;
 import com.foodie.customer.repo.Repos.RestaurantRepo;
-import com.foodie.customer.repo.Repos.RiderRepo;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-/** Fills MySQL with demo restaurants, dishes and riders the first time the app starts (tables empty). */
+
 @Component
-public class DataSeeder implements CommandLineRunner {
+public class CustomerDataSeeder implements CommandLineRunner {
     private final RestaurantRepo restaurants;
     private final MenuItemRepo menu;
-    private final RiderRepo riders;
+    
 
-    public DataSeeder(RestaurantRepo restaurants, MenuItemRepo menu, RiderRepo riders) {
-        this.restaurants = restaurants;
-        this.menu = menu;
-        this.riders = riders;
-    }
+    public CustomerDataSeeder(RestaurantRepo restaurants, MenuItemRepo menu) {
+    this.restaurants = restaurants;
+    this.menu = menu;
+}
 
     @Override
     public void run(String... args) {
@@ -112,11 +111,7 @@ public class DataSeeder implements CommandLineRunner {
         i(chai, "Beverages", "Masala Chai", "Ginger and cardamom milk tea.", 25, true, true, "🍵");
         i(chai, "Beverages", "Mango Lassi", "Chilled yoghurt drink with Alphonso mango.", 79, true, false, "🥭");
 
-        rider("Ravi Kumar", "98480 12345", "Bike - AP 31 AB 1234");
-        rider("Suresh Babu", "98490 23456", "Scooter - AP 31 CD 5678");
-        rider("Anil Varma", "98660 34567", "Bike - AP 39 EF 9012");
-        rider("Kiran Teja", "99890 45678", "Scooter - AP 31 GH 3456");
-        rider("Mahesh Reddy", "90300 56789", "Bike - AP 35 JK 7890");
+       
     }
 
     private Restaurant r(String name, String cuisines, String emoji, double rating, int mins, int cost, boolean pureVeg,
@@ -150,11 +145,5 @@ public class DataSeeder implements CommandLineRunner {
         menu.save(m);
     }
 
-    private void rider(String name, String phone, String vehicle) {
-        Rider x = new Rider();
-        x.setName(name);
-        x.setPhone(phone);
-        x.setVehicle(vehicle);
-        riders.save(x);
-    }
+    
 }
