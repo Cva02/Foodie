@@ -21,7 +21,11 @@ public class CustomerAuthInterceptor implements HandlerInterceptor {
         String path = req.getRequestURI();
 
         boolean isPublic = path.startsWith("/api/customer/auth/")
-                || ("GET".equals(req.getMethod()) && path.startsWith("/api/customer/restaurants"));
+        || ("GET".equals(req.getMethod()) && (
+                path.startsWith("/api/customer/restaurants")
+                || path.equals("/api/restaurants")
+                || path.startsWith("/api/restaurants/")
+        ));
 
         String header = req.getHeader("Authorization");
         Long uid = (header != null && header.startsWith("Bearer "))

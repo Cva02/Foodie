@@ -1,3 +1,4 @@
+
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./context.jsx";
 
@@ -34,6 +35,7 @@ import Navbar from "./components/Navbar.jsx";
 import BottomNav from "./components/BottomNav.jsx";
 import LocationDrawer from "./components/LocationDrawer.jsx";
 import Login from "./pages/Login.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
 import Home from "./pages/Home.jsx";
 import Search from "./pages/Search.jsx";
 import Restaurant from "./pages/Restaurant.jsx";
@@ -46,7 +48,9 @@ function CustomerShell() {
   return (
     <>
       <Navbar />
-      <main className="page"><Outlet /></main>
+      <main className="page">
+        <Outlet />
+      </main>
       <BottomNav />
       <LocationDrawer />
     </>
@@ -83,6 +87,9 @@ export default function App() {
 
   return (
     <Routes>
+      {/* PUBLIC LANDING PAGE */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* ADMIN PORTAL */}
       <Route path="/admin/login" element={<LoginPage />} />
       <Route path="/admin/logout" element={<LogoutPage />} />
@@ -109,39 +116,44 @@ export default function App() {
         </Route>
       </Route>
 
-	{/* RIDER PORTAL */}
-<Route path="/rider" element={<RiderAccessPage />} />
+      {/* RIDER PORTAL */}
+      <Route path="/rider" element={<RiderAccessPage />} />
 
-	      {/* SELLER PORTAL */}
+      {/* SELLER PORTAL */}
       <Route path="/seller/login" element={<SellerLogin />} />
       <Route path="/seller/register" element={<SellerRegister />} />
-      
 
       <Route path="/seller" element={<SellerProtected />}>
         <Route element={<SellerLayout />}>
           <Route index element={<SellerDashboard />} />
-	  <Route path="menu" element={<SellerMenuPage />} />
-	  <Route path="orders" element={<SellerOrdersPage />} />
-	  <Route path="profile" element={<SellerProfilePage />} />
+          <Route path="menu" element={<SellerMenuPage />} />
+          <Route path="orders" element={<SellerOrdersPage />} />
+          <Route path="profile" element={<SellerProfilePage />} />
         </Route>
       </Route>
 
-      {/* CUSTOMER PORTAL */}
+      {/* CUSTOMER LOGIN */}
       <Route
         path="/login"
-        element={user ? <Navigate to="/" replace /> : <Login />}
+        element={user ? <Navigate to="/customer" replace /> : <Login />}
       />
 
+      {/* PUBLIC CUSTOMER BROWSING */}
+      <Route element={<CustomerShell />}>
+        <Route path="/customer" element={<Home />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/restaurant/:id" element={<Restaurant />} />
+      </Route>
+
+      {/* CUSTOMER PAGES REQUIRING LOGIN */}
       <Route element={<CustomerProtected />}>
-        <Route index element={<Home />} />
-        <Route path="search" element={<Search />} />
-        <Route path="restaurant/:id" element={<Restaurant />} />
         <Route path="cart" element={<Cart />} />
         <Route path="orders" element={<Orders />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 
+      {/* UNKNOWN ROUTES */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

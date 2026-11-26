@@ -60,7 +60,7 @@ export default function Cart() {
         <div className="empty-ico">🛒</div>
         <h2>Your cart is empty</h2>
         <p className="muted">You can go to home page to view more restaurants</p>
-        <Link to="/" className="btn primary">SEE RESTAURANTS NEAR YOU</Link>
+        <Link to="/customer" className="btn primary">SEE RESTAURANTS NEAR YOU</Link>
       </div>
     );
   }

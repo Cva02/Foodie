@@ -30,7 +30,7 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="navbar-in">
-        <Link to="/" className="brand" aria-label="Foodie home" onClick={triggerHomeVisit}>
+        <Link to="/customer" className="brand" aria-label="Foodie home" onClick={triggerHomeVisit}>
           <img src="/logo-mark.png" alt="" />
           <span>foodie</span>
         </Link>

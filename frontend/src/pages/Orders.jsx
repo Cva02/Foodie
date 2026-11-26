@@ -122,7 +122,7 @@ export default function Orders() {
         <div className="empty small-empty">
           <div className="empty-ico">🧾</div>
           <h3>No orders here yet</h3>
-          <Link to="/" className="btn primary">ORDER NOW</Link>
+          <Link to="/customer" className="btn primary">ORDER NOW</Link>
         </div>
       )}
 

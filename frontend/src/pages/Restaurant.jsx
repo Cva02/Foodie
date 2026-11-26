@@ -46,7 +46,7 @@ export default function Restaurant() {
 
   return (
     <div className="container narrow rest-page">
-      <p className="crumbs"><Link to="/">Home</Link> / <b>{r.name}</b></p>
+      <p className="crumbs"><Link to="/customer">Home</Link> / <b>{r.name}</b></p>
 
       <section className="rest-head">
         <div>
