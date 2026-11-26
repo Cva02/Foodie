@@ -31,7 +31,6 @@ public class SellerApplicationService {
     private final PortalAccountRepository accounts;
     private final PasswordEncoder passwordEncoder;
     private final AdminService admin;
-    private final UploadService uploads;
     private final RestaurantRepo restaurants;
 
     public SellerApplicationService(
@@ -41,7 +40,6 @@ public class SellerApplicationService {
             PortalAccountRepository accounts,
             PasswordEncoder passwordEncoder,
             AdminService admin,
-            UploadService uploads,
 	    RestaurantRepo restaurants) {
 
         this.applications = applications;
@@ -50,7 +48,6 @@ public class SellerApplicationService {
         this.accounts = accounts;
         this.passwordEncoder = passwordEncoder;
         this.admin = admin;
-        this.uploads = uploads;
 	this.restaurants = restaurants;
     }
 

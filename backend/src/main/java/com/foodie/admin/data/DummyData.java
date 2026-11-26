@@ -148,7 +148,7 @@ public class DummyData {
             int mine = 0;
             double spent = 0;
             for (Order o : orders) {
-                if (o.customerId().equals(id)) {
+                if (java.util.Objects.equals(o.customerId(), id)) {
                     mine++;
                     if (o.status().equals("DELIVERED")) spent += o.amount();
                 }
@@ -165,7 +165,7 @@ public class DummyData {
             int mine = 0;
             double revenue = 0;
             for (Order o : orders) {
-                if (o.sellerId().equals(id)) {
+                if (java.util.Objects.equals(o.sellerId(), id)) {
                     mine++;
                     if (o.status().equals("DELIVERED")) revenue += o.amount();
                 }

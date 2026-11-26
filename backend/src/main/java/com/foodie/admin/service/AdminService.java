@@ -3,9 +3,7 @@ package com.foodie.admin.service;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Comparator;
-import com.foodie.customer.model.OrderEntity;
-import com.foodie.customer.model.OrderItem;
-import com.foodie.customer.model.Restaurant;
+
 import com.foodie.customer.model.User;
 import com.foodie.customer.repo.Repos.OrderRepo;
 import com.foodie.customer.repo.Repos.RestaurantRepo;
@@ -38,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Objects;
 
 @Service
 public class AdminService {
@@ -107,7 +106,7 @@ private final RestaurantRepo restaurantRepo;
     public synchronized Detail<Customer> customer(String id) {
         Customer c = customerById(id);
         String rawId = id.startsWith("U-") ? id.substring(2) : id;
-        return new Detail<>(c, ordersWhere(o -> o.customerId().equals(id) || o.customerId().equals(rawId)));
+        return new Detail<>(c, ordersWhere(o -> Objects.equals(o.customerId(), id) || Objects.equals(o.customerId(), rawId)));
     }
 
     public synchronized Customer setCustomerStatus(String id, String status) {
@@ -136,7 +135,7 @@ private final RestaurantRepo restaurantRepo;
 
     public synchronized Detail<Seller> seller(String id) {
         Seller s = findSeller(id);
-        return new Detail<>(s, ordersWhere(o -> o.sellerId().equals(id)));
+        return new Detail<>(s, ordersWhere(o -> Objects.equals(o.sellerId(), id)));
     }
 
     public synchronized Seller setSellerStatus(String id, String status, String note) {
@@ -444,7 +443,7 @@ private List<Order> allOrders() {
         String rawId = String.valueOf(user.getId());
         String displayId = "U-" + rawId;
         List<Order> customerOrders = allOrders.stream()
-                .filter(order -> order.customerId().equals(rawId) || order.customerId().equals(displayId))
+                .filter(order -> Objects.equals(order.customerId(), rawId) || Objects.equals(order.customerId(), displayId))
                 .toList();
         double spent = customerOrders.stream()
                 .filter(order -> "DELIVERED".equals(order.status()))
@@ -475,7 +474,7 @@ private List<Order> allOrders() {
 
     private Customer customerFromAccount(PortalAccount account, List<Order> allOrders) {
         List<Order> customerOrders = allOrders.stream().filter(order ->
-                order.customerId().equals(account.getProfileId())).toList();
+                Objects.equals(order.customerId(), account.getProfileId())).toList();
         double spent = customerOrders.stream().filter(order -> "DELIVERED".equals(order.status()))
                 .mapToDouble(Order::amount).sum();
         return new Customer(account.getProfileId(), account.getDisplayName(), account.getEmail(),
