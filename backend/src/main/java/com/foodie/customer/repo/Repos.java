@@ -1,10 +1,15 @@
 package com.foodie.customer.repo;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import com.foodie.customer.model.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public final class Repos {
     private Repos() {}
@@ -21,14 +26,28 @@ public final class Repos {
         List<MenuItem> findByRestaurantId(Long restaurantId);
         List<MenuItem> findByNameContainingIgnoreCase(String q);
     }
-    public interface RiderRepo extends JpaRepository<Rider, Long> {}
+    
     public interface OrderRepo extends JpaRepository<OrderEntity, Long> {
-        List<OrderEntity> findByUserIdOrderByIdDesc(Long userId);
-        List<OrderEntity> findByStatusIn(Collection<OrderStatus> statuses);
-        boolean existsByUserId(Long userId);
-    }
-    public interface NotificationRepo extends JpaRepository<Notification, Long> {
-        List<Notification> findByUserIdOrderByIdDesc(Long userId);
-        long countByUserIdAndReadFalse(Long userId);
-    }
+    
+            @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM OrderEntity o WHERE o.id = :id")
+    Optional<OrderEntity> findByIdForUpdate(@Param("id") Long id);
+
+    @Override
+    @EntityGraph(attributePaths = "items")
+    List<OrderEntity> findAll();
+
+    List<OrderEntity> findByUserIdOrderByIdDesc(Long userId);
+    List<OrderEntity> findByRestaurantIdOrderByIdDesc(Long restaurantId);
+    List<OrderEntity> findByStatusIn(Collection<OrderStatus> statuses);
+    boolean existsByUserId(Long userId);
+}
+    public interface NotificationRepo
+        extends JpaRepository<Notification, Long> {
+    List<Notification> findByUserIdOrderByIdDesc(Long userId);
+    long countByUserIdAndReadFalse(Long userId);
+
+    List<Notification> findByRiderIdOrderByIdDesc(String riderId);
+    Optional<Notification> findByIdAndRiderId(Long id, String riderId);
+}
 }

@@ -22,6 +22,7 @@ export default function Cart() {
   const [saved, setSaved] = useState([]);
   const [addr, setAddr] = useState('current');
   const [door, setDoor] = useState('');
+  const [pinCode, setPinCode] = useState('');
   const [pay, setPay] = useState(() => localStorage.getItem('foodie_pay') || 'COD');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
@@ -96,7 +97,7 @@ export default function Cart() {
 
     setCouponBusy(true);
     try {
-      await api.post('/orders/coupons/validate', {
+      await api.post('/customer/orders/coupons/validate', {
         couponCode: coupon.code,
         restaurantId: cart.restaurant.id,
         items: list.map((item) => ({ menuItemId: item.id, qty: item.qty })),
@@ -115,13 +116,18 @@ export default function Cart() {
 
   const place = async () => {
     if (!chosen) { toast('Please choose a delivery address', 'error'); return; }
+    if (!/^\d{6}$/.test(pinCode)) {
+  toast('Please enter a valid 6-digit delivery PIN code', 'error');
+  return;
+}
     setBusy(true);
     try {
       localStorage.setItem('foodie_pay', pay);
-      const order = await api.post('/orders', {
+      const order = await api.post('/customer/orders', {
         restaurantId: cart.restaurant.id,
         items: list.map((i) => ({ menuItemId: i.id, qty: i.qty })),
         address: [door.trim(), chosen.line].filter(Boolean).join(', '),
+        pinCode: pinCode.trim(),
         lat: chosen.lat ?? loc.lat,
         lon: chosen.lon ?? loc.lon,
         paymentMethod: pay,
@@ -158,7 +164,10 @@ export default function Cart() {
         <section className="panel">
           <h3>Delivery address</h3>
           <label className={'radio-card' + (addr === 'current' ? ' on' : '')}>
-            <input type="radio" name="addr" checked={addr === 'current'} onChange={() => setAddr('current')} />
+            <input type="radio" name="addr" checked={addr === 'current'} onChange={() => {
+  setAddr('current');
+  setPinCode('');
+}} />
             <div>
               <b>Current location</b>
               <p>{loc.full || loc.label}</p>
@@ -166,7 +175,15 @@ export default function Cart() {
           </label>
           {saved.map((a) => (
             <label key={a.id} className={'radio-card' + (addr === String(a.id) ? ' on' : '')}>
-              <input type="radio" name="addr" checked={addr === String(a.id)} onChange={() => setAddr(String(a.id))} />
+              <input
+  type="radio"
+  name="addr"
+  checked={addr === String(a.id)}
+  onChange={() => {
+    setAddr(String(a.id));
+    setPinCode(a.pinCode || '');
+  }}
+/>
               <div><b>{a.label}</b><p>{a.line}</p></div>
             </label>
           ))}
@@ -174,6 +191,15 @@ export default function Cart() {
             <CrosshairIcon size={16} /> {detecting ? 'Detecting…' : 'Use my current location'}
           </button>
           <input className="input" placeholder="Door / Flat no. & landmark (optional)" value={door} onChange={(e) => setDoor(e.target.value)} />
+          <input
+          
+          className="input"
+          placeholder="6-digit delivery PIN code"
+          value={pinCode}
+          onChange={(e) => setPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          inputMode="numeric"
+          maxLength={6}
+          />
           <p className="small muted">Delivering to {user?.name}. Add addresses in Settings to see them here.</p>
         </section>
 

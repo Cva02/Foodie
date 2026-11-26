@@ -44,6 +44,9 @@ public class AccountService {
         User u = users.findByEmailIgnoreCase(r.email().trim())
                 .filter(x -> encoder.matches(r.password(), x.getPasswordHash()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Incorrect email or password"));
+        if ("BLOCKED".equalsIgnoreCase(u.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your customer account has been blocked by admin");
+        }
         return new AuthRes(tokens.create(u.getId()), dto(u));
     }
 
@@ -84,14 +87,15 @@ public class AccountService {
 
     @Transactional
     public AddressDto addAddress(Long uid, AddressReq r) {
-        Address a = new Address();
-        a.setUserId(uid);
-        a.setLabel(r.label() == null || r.label().isBlank() ? "Other" : r.label());
-        a.setLine(r.line().trim());
-        a.setLat(r.lat());
-        a.setLon(r.lon());
-        return dto(addresses.save(a));
-    }
+    Address a = new Address();
+    a.setUserId(uid);
+    a.setLabel(r.label() == null || r.label().isBlank() ? "Other" : r.label());
+    a.setLine(r.line().trim());
+    a.setPinCode(r.pinCode() == null ? null : r.pinCode().trim());
+    a.setLat(r.lat());
+    a.setLon(r.lon());
+    return dto(addresses.save(a));
+}
 
     @Transactional
     public void deleteAddress(Long uid, Long id) {
@@ -107,6 +111,13 @@ public class AccountService {
     }
 
     private AddressDto dto(Address a) {
-        return new AddressDto(a.getId(), a.getLabel(), a.getLine(), a.getLat(), a.getLon());
-    }
+    return new AddressDto(
+            a.getId(),
+            a.getLabel(),
+            a.getLine(),
+            a.getPinCode(),
+            a.getLat(),
+            a.getLon()
+    );
+}
 }

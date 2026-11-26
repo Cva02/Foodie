@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import { api } from '../api';
 import { useCart, useToast } from '../context.jsx';
 import Modal from '../components/Modal.jsx';
@@ -41,8 +42,10 @@ export default function Orders() {
   const [cancelling, setCancelling] = useState(null);
   const [reason, setReason] = useState(REASONS[0]);
   const [busy, setBusy] = useState(false);
+  const [selectedRatings, setSelectedRatings] = useState({});
+  const [ratingOrderId, setRatingOrderId] = useState(null);
 
-  const load = useCallback(() => api.get('/orders').then(setOrders).catch((e) => setError(e.message)), []);
+  const load = useCallback(() => api.get('/customer/orders').then(setOrders).catch((e) => setError(e.message)), []);
 
   useEffect(() => {
     load();
@@ -53,7 +56,7 @@ export default function Orders() {
   const confirmCancel = async () => {
     setBusy(true);
     try {
-      await api.post(`/orders/${cancelling.id}/cancel`, { reason });
+      await api.post(`/customer/orders/${cancelling.id}/cancel`, { reason });
       toast(`Order #${cancelling.id} cancelled`, 'ok');
       window.dispatchEvent(new Event('foodie-notifications-changed'));
       setCancelling(null);
@@ -64,6 +67,27 @@ export default function Orders() {
       load();
     } finally {
       setBusy(false);
+    }
+  };
+
+  const submitRiderRating = async (order) => {
+    const rating = selectedRatings[order.id];
+    if (!rating) return;
+
+    setRatingOrderId(order.id);
+    try {
+      await api.post(`/customer/orders/${order.id}/rider-rating`, { rating });
+      toast('Thanks for rating your rider!', 'ok');
+      setSelectedRatings((current) => {
+        const next = { ...current };
+        delete next[order.id];
+        return next;
+      });
+      await load();
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setRatingOrderId(null);
     }
   };
 
@@ -117,8 +141,53 @@ export default function Orders() {
             {o.status !== 'CANCELLED' && <StatusTracker status={o.status} />}
             {o.status === 'CANCELLED' && <p className="cancel-note">❌ {o.cancelReason || 'Cancelled'}</p>}
 
-            {o.rider && o.status !== 'DELIVERED' && o.status !== 'CANCELLED' && (
-              <p className="rider">🛵 <b>{o.rider.name}</b> will deliver your order • <a href={'tel:' + o.rider.phone.replace(/\s/g, '')}>{o.rider.phone}</a> <small>({o.rider.vehicle})</small></p>
+            {o.rider && o.status !== 'CANCELLED' && (
+              <p className="rider">
+                🛵 <b>{o.status === 'DELIVERED' ? 'Delivered by' : 'Your rider'} {o.rider.name}</b>
+                {o.status !== 'DELIVERED' && <> • <a href={'tel:' + o.rider.phone.replace(/\s/g, '')}>{o.rider.phone}</a></>}
+                <small> ({o.rider.vehicle})</small>
+              </p>
+            )}
+
+            {o.status === 'DELIVERED' && o.rider && (
+              <section className="rider-rating" aria-label="Rate your rider">
+                <div>
+                  <strong>{o.riderRating ? 'Your rating' : 'Rate your rider'}</strong>
+                  <p className="small muted">
+                    {o.riderRating ? 'Thanks for sharing your feedback.' : 'How was your delivery experience?'}
+                  </p>
+                </div>
+                <div className="rider-rating-controls">
+                  <div className="rider-rating-stars" role="group" aria-label="Choose a rating from 1 to 5 stars">
+                    {[1, 2, 3, 4, 5].map((rating) => {
+                      const value = o.riderRating || selectedRatings[o.id] || 0;
+                      return (
+                        <button
+                          key={rating}
+                          type="button"
+                          className={`rider-rating-star${rating <= value ? ' selected' : ''}`}
+                          aria-label={`${rating} star${rating === 1 ? '' : 's'}`}
+                          aria-pressed={value === rating}
+                          disabled={Boolean(o.riderRating) || ratingOrderId === o.id}
+                          onClick={() => setSelectedRatings((current) => ({ ...current, [o.id]: rating }))}
+                        >
+                          <Star size={20} fill={rating <= value ? 'currentColor' : 'none'} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {!o.riderRating && (
+                    <button
+                      type="button"
+                      className="btn primary rider-rating-submit"
+                      disabled={!selectedRatings[o.id] || ratingOrderId === o.id}
+                      onClick={() => submitRiderRating(o)}
+                    >
+                      {ratingOrderId === o.id ? 'SAVING…' : 'SUBMIT RATING'}
+                    </button>
+                  )}
+                </div>
+              </section>
             )}
 
             <ul className="order-items">
@@ -130,6 +199,13 @@ export default function Orders() {
               <p className="order-coupon">🏷️ {pricing.couponCode} applied • Discount −{rupee(pricing.discount)}</p>
             )}
             <p className="small muted">Delivering to: {o.address}</p>
+            {o.deliveryCode && !['DELIVERED', 'CANCELLED'].includes(o.status) && (
+  <div className="order-delivery-otp">
+    <b>Delivery OTP</b>
+    <strong>{o.deliveryCode}</strong>
+    <p className="small muted">Share this OTP with your rider only when your order arrives.</p>
+  </div>
+)}
 
             <footer>
               <div>

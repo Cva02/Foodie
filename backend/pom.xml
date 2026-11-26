@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -14,17 +13,17 @@
     </parent>
 
     <groupId>com.foodie</groupId>
-    <artifactId>customer-portal</artifactId>
+    <artifactId>foodie-admin-backend</artifactId>
     <version>1.0.0</version>
-    <name>foodie-customer-portal</name>
+    <name>foodie-admin-backend</name>
+    <description>Foodie shared backend for Admin and Customer</description>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <lombok.version>1.18.48</lombok.version>
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -57,16 +56,15 @@
             <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>com.foodie.admin.FoodieAdminApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
@@ -80,7 +78,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <release>17</release>
+                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -90,8 +88,6 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
-
 </project>

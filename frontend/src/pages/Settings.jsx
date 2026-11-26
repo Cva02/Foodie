@@ -61,7 +61,7 @@ function Addresses() {
   const toast = useToast();
   const { detect, detecting } = useGeo();
   const [list, setList] = useState([]);
-  const [form, setForm] = useState({ label: 'Home', line: '', lat: null, lon: null });
+  const [form, setForm] = useState({ label: 'Home', line: '', pinCode: '', lat: null, lon: null });
 
   const load = () => api.get('/users/me/addresses').then(setList).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -73,7 +73,7 @@ function Addresses() {
 
   const add = async (e) => {
     e.preventDefault();
-    try { await api.post('/users/me/addresses', form); setForm({ label: 'Home', line: '', lat: null, lon: null }); toast('Address saved', 'ok'); load(); }
+    try { await api.post('/users/me/addresses', form); setForm({ label: 'Home', line: '', pinCode: '', lat: null, lon: null }); toast('Address saved', 'ok'); load(); }
     catch (err) { toast(err.message, 'error'); }
   };
 
@@ -85,7 +85,11 @@ function Addresses() {
       {list.length === 0 && <p className="muted">No saved addresses yet.</p>}
       {list.map((a) => (
         <div key={a.id} className="addr-card">
-          <div><b>{a.label}</b><p>{a.line}</p></div>
+          <div>
+  <b>{a.label}</b>
+  <p>{a.line}</p>
+  <p className="small muted">PIN: {a.pinCode || 'Not saved'}</p>
+</div>
           <button className="link danger-text" onClick={() => remove(a.id)}>DELETE</button>
         </div>
       ))}
@@ -99,6 +103,15 @@ function Addresses() {
         </div>
         <textarea className="input" rows={3} placeholder="Flat no., building, street, area" value={form.line}
                   onChange={(e) => setForm({ ...form, line: e.target.value })} required />
+                  <input
+  className="input"
+  placeholder="6-digit PIN code"
+  value={form.pinCode}
+  onChange={(e) => setForm({ ...form, pinCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+  inputMode="numeric"
+  maxLength={6}
+  required
+/>
         <div className="row-gap">
           <button type="button" className="btn outline" onClick={fillFromGps} disabled={detecting}>
             <CrosshairIcon size={16} /> {detecting ? 'Detecting…' : 'Use my current location'}

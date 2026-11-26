@@ -21,8 +21,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const finish = (r) => { setToken(r.token); setUser(r.user); return r.user; };
-  const login = async (email, password) => finish(await api.post('/auth/login', { email, password }));
-  const signup = async (body) => finish(await api.post('/auth/signup', body));
+  const login = async (email, password) => finish(await api.post('/customer/auth/login', { email, password }));
+  const signup = async (body) => finish(await api.post('/customer/auth/signup', body));
   const logout = () => { setToken(null); setUser(null); localStorage.removeItem('foodie_cart'); };
 
   return <AuthCtx.Provider value={{ user, setUser, ready, login, signup, logout }}>{children}</AuthCtx.Provider>;

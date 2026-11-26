@@ -1,8 +1,28 @@
+# React / Vite
 node_modules/
 frontend/node_modules/
-backend/target/
-target/
+dist/
 frontend/dist/
+
+# Java / Maven
+target/
+backend/target/
+*.class
+
+# Environment files
 .env
 .env.*
 !.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Uploaded files and private documents
+backend/uploads/
+
+# Local backup files
+*.java.backup

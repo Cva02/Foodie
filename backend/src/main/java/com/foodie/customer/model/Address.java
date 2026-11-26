@@ -15,6 +15,8 @@ public class Address {
     private String label;
     @Column(length = 500)
     private String line;
+    @Column(length = 6)
+    private String pinCode;
     private Double lat;
     private Double lon;
 }
