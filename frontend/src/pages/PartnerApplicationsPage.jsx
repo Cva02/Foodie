@@ -80,7 +80,7 @@ export default function PartnerApplicationsPage({ role }) {
     setError("");
     try {
       const route = isSeller
-        ? `${endpoint}/${application.id}/fssai-document`
+        ? `${endpoint}/${application.id}/${documentType === "gst" ? "gst-document" : "fssai-document"}`
         : `${endpoint}/${application.id}/${documentType === "photo" ? "photo" : "license-document"}`;
       const file = await api.getBlob(route);
       const extension = file.type === "application/pdf" ? "pdf"
@@ -173,13 +173,22 @@ export default function PartnerApplicationsPage({ role }) {
                     <img src={application.photoUrl} alt={`${name} rider`} />
                   )}
                   {isSeller ? (
-                    application.hasFssaiDocument ? (
-                      <button type="button" className="btn btn-outline btn-sm"
-                        disabled={downloadBusy === `${application.id}:fssai`}
-                        onClick={() => downloadDocument(application, "fssai")}>
-                        <Download size={14} /> {downloadBusy === `${application.id}:fssai` ? "Downloading…" : "Download FSSAI certificate"}
-                      </button>
-                    ) : <span className="muted small">FSSAI certificate not attached to this application.</span>
+                    <div className="application-document-actions">
+                      {application.hasFssaiDocument ? (
+                        <button type="button" className="btn btn-outline btn-sm"
+                          disabled={downloadBusy === `${application.id}:fssai`}
+                          onClick={() => downloadDocument(application, "fssai")}>
+                          <Download size={14} /> {downloadBusy === `${application.id}:fssai` ? "Downloading…" : "Download FSSAI certificate"}
+                        </button>
+                      ) : <span className="muted small">FSSAI certificate not attached.</span>}
+                      {application.hasGstDocument && (
+                        <button type="button" className="btn btn-outline btn-sm"
+                          disabled={downloadBusy === `${application.id}:gst`}
+                          onClick={() => downloadDocument(application, "gst")}>
+                          <Download size={14} /> {downloadBusy === `${application.id}:gst` ? "Downloading…" : "Download GST certificate"}
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <div className="application-document-actions">
                       {application.hasLicenseDocument && (

@@ -20,3 +20,9 @@ backend/target/
 
 # Logs
 *.log
+
+# Uploaded files and private documents
+backend/uploads/
+
+# Local backup files
+*.java.backup

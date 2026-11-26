@@ -20,5 +20,10 @@ public class User {
     private Double lat;
     private Double lon;
     private String locationLabel;
+    private String status = "ACTIVE";
     private Instant createdAt = Instant.now();
+
+    public String getStatus() {
+        return status == null || status.isBlank() ? "ACTIVE" : status;
+    }
 }

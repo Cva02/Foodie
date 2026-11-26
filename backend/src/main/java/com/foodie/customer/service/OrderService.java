@@ -43,6 +43,7 @@ public class OrderService {
         o.setRestaurantId(r.getId());
         o.setRestaurantName(r.getName());
         o.setAddress(req.address().trim());
+        o.setPinCode(req.pinCode().trim());
         o.setLat(req.lat());
         o.setLon(req.lon());
         o.setInstructions(req.instructions());
@@ -157,6 +158,23 @@ public class OrderService {
         return toDto(o);
     }
 
+    @Transactional
+    public OrderDto rateRider(Long uid, Long id, Integer rating) {
+        OrderEntity o = orders.findByIdForUpdate(id)
+                .filter(order -> order.getUserId().equals(uid))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+
+        if (o.getStatus() != OrderStatus.DELIVERED || o.getRiderId() == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You can rate the rider after your order is delivered");
+        }
+        if (o.getRiderRating() != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already rated this rider");
+        }
+
+        o.setRiderRating(rating);
+        return toDto(o);
+    }
+
     private OrderEntity owned(Long uid, Long id) {
         return orders.findById(id).filter(o -> o.getUserId().equals(uid))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
@@ -167,9 +185,27 @@ public class OrderService {
                 .map(x -> new RiderDto(x.getName(), x.getPhone(), x.getVehicle())).orElse(null);
         List<OrderItemDto> items = o.getItems().stream()
                 .map(i -> new OrderItemDto(i.getMenuItemId(), i.getName(), i.getPrice(), i.getQty(), i.isVeg())).toList();
-        return new OrderDto(o.getId(), o.getRestaurantId(), o.getRestaurantName(), o.getStatus().name(), items,
-                o.getItemTotal(), o.getDeliveryFee(), o.getTaxes(), o.getDiscount(), o.getCouponCode(), o.getTotal(),
-                o.getPaymentMethod(), o.getAddress(), o.getCreatedAt(), o.getStatusUpdatedAt(), rider,
-                o.getStatus().cancellable(), o.getCancelReason());
+        return new OrderDto(
+        o.getId(),
+        o.getRestaurantId(),
+        o.getRestaurantName(),
+        o.getStatus().name(),
+        items,
+        o.getItemTotal(),
+        o.getDeliveryFee(),
+        o.getTaxes(),
+        o.getDiscount(),
+        o.getCouponCode(),
+        o.getTotal(),
+        o.getPaymentMethod(),
+        o.getAddress(),
+        o.getDeliveryCode(),
+        o.getCreatedAt(),
+        o.getStatusUpdatedAt(),
+        rider,
+        o.getStatus().cancellable(),
+        o.getCancelReason(),
+        o.getRiderRating()
+);
     }
 }

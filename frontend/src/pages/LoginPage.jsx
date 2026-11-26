@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
 import FoodieBrand from "../components/FoodieBrand.jsx";
 import PasswordResetForm from "../components/PasswordResetForm.jsx";
@@ -89,6 +89,12 @@ export default function LoginPage() {
               onClick={() => { setResettingPassword(true); setError(""); }}>
               Forgot password?
             </button>
+            <div className="admin-portal-links">
+              <span>Switch portal</span>
+              <Link to="/login">Customer</Link>
+              <Link to="/seller/login">Seller</Link>
+              <Link to="/rider">Rider</Link>
+            </div>
           </form>
         )}
       </div>

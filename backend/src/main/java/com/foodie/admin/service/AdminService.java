@@ -5,7 +5,10 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import com.foodie.customer.model.OrderEntity;
 import com.foodie.customer.model.OrderItem;
+import com.foodie.customer.model.Restaurant;
+import com.foodie.customer.model.User;
 import com.foodie.customer.repo.Repos.OrderRepo;
+import com.foodie.customer.repo.Repos.RestaurantRepo;
 import com.foodie.customer.repo.Repos.UserRepo;
 import com.foodie.admin.data.DummyData;
 import com.foodie.admin.model.Customer;
@@ -52,10 +55,12 @@ private final FoodOrderRepository foodOrderRepo;
 private final PortalAccountRepository portalAccountRepo;
 private final OrderRepo customerOrderRepo;
 private final UserRepo customerUserRepo;
+private final RestaurantRepo restaurantRepo;
 
     public AdminService(DummyData data, SellerRepository sellerRepo, RiderRepository riderRepo,
                     FoodOrderRepository foodOrderRepo, PortalAccountRepository portalAccountRepo,
-                    OrderRepo customerOrderRepo, UserRepo customerUserRepo) {
+                    OrderRepo customerOrderRepo, UserRepo customerUserRepo,
+                    RestaurantRepo restaurantRepo) {
     this.data = data;
     this.sellerRepo = sellerRepo;
     this.riderRepo = riderRepo;
@@ -63,6 +68,7 @@ private final UserRepo customerUserRepo;
     this.portalAccountRepo = portalAccountRepo;
     this.customerOrderRepo = customerOrderRepo;
     this.customerUserRepo = customerUserRepo;
+    this.restaurantRepo = restaurantRepo;
 }
 
     // ---------------------------------------------------------------- dashboard
@@ -89,6 +95,10 @@ private final UserRepo customerUserRepo;
     public synchronized List<Customer> customers() {
         Map<String, Customer> result = new LinkedHashMap<>(data.customers);
         List<Order> allOrders = allOrders();
+        customerUserRepo.findAll().forEach(user -> {
+            String cid = String.valueOf(user.getId());
+            result.putIfAbsent("U-" + cid, customerFromUser(user, allOrders));
+        });
         portalAccountRepo.findByRole("CUSTOMER").forEach(account ->
                 result.putIfAbsent(account.getProfileId(), customerFromAccount(account, allOrders)));
         return new ArrayList<>(result.values());
@@ -96,11 +106,20 @@ private final UserRepo customerUserRepo;
 
     public synchronized Detail<Customer> customer(String id) {
         Customer c = customerById(id);
-        return new Detail<>(c, ordersWhere(o -> o.customerId().equals(id)));
+        String rawId = id.startsWith("U-") ? id.substring(2) : id;
+        return new Detail<>(c, ordersWhere(o -> o.customerId().equals(id) || o.customerId().equals(rawId)));
     }
 
     public synchronized Customer setCustomerStatus(String id, String status) {
         check(CUSTOMER_STATUS, status);
+        if (id.startsWith("U-")) {
+            Long uid = Long.parseLong(id.substring(2));
+            User user = customerUserRepo.findById(uid)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer " + id + " not found"));
+            user.setStatus(status);
+            customerUserRepo.save(user);
+            return customerFromUser(user, allOrders());
+        }
         Customer updated = customerById(id).withStatus(status);
         data.customers.put(id, updated);
         portalAccountRepo.findByProfileId(id).ifPresent(account -> {
@@ -121,13 +140,30 @@ private final UserRepo customerUserRepo;
     }
 
     public synchronized Seller setSellerStatus(String id, String status, String note) {
-        check(SELLER_STATUS, status);
-        Seller s = findSeller(id);
-        s.setStatusNote(statusNote(status, s.getStatus(), note, s.getStatusNote(), false));
-        s.setStatus(status);
-        return sellerRepo.save(s);
+    check(SELLER_STATUS, status);
+
+    Seller seller = findSeller(id);
+
+    seller.setStatusNote(
+            statusNote(status, seller.getStatus(), note, seller.getStatusNote(), false)
+    );
+    seller.setStatus(status);
+
+    if (seller.getRestaurantId() != null) {
+        boolean shouldBeOpen = "ACTIVE".equalsIgnoreCase(status) && seller.isOpen();
+        restaurantRepo.findById(seller.getRestaurantId()).ifPresent(restaurant -> {
+            restaurant.setOpen(shouldBeOpen);
+            restaurantRepo.save(restaurant);
+        });
     }
 
+    portalAccountRepo.findByProfileId(id).ifPresent(account -> {
+        account.setStatus(status);
+        portalAccountRepo.save(account);
+    });
+
+    return sellerRepo.save(seller);
+}
     public synchronized Seller createSeller(SellerRequest r) {
         String status = orDefault(r.status(), "ACTIVE");
         check(SELLER_STATUS, status);
@@ -139,15 +175,74 @@ private final UserRepo customerUserRepo;
         return sellerRepo.save(s);
     }
 
+    public synchronized Seller createSellerFromApplication(
+        String name,
+        String ownerName,
+        String image,
+        String cuisine,
+        String phone,
+        String email,
+        String address,
+        String city,
+        String fssaiNumber) {
+
+    String id = nextId("S", sellerRepo.findAll().stream()
+            .map(Seller::getId).toList());
+
+    Seller seller = new Seller(
+            id,
+            name.trim(),
+            ownerName.trim(),
+            null,
+            blankToNull(image),
+            cuisine.trim(),
+            phone.trim(),
+            email.trim(),
+            address.trim(),
+            blankToNull(city),
+            blankToNull(fssaiNumber),
+            0.0,
+            "ACTIVE",
+            true,
+            today(),
+            0,
+            0.0,
+            List.of()
+    );
+
+    return sellerRepo.save(seller);
+}
+
     public synchronized Seller updateSeller(String id, SellerRequest r) {
-        Seller s = findSeller(id);
-        String status = orDefault(r.status(), s.getStatus());
-        check(SELLER_STATUS, status);
-        s.setStatusNote(statusNote(status, s.getStatus(), r.statusNote(), s.getStatusNote(), false));
-        s.setStatus(status);
-        applySeller(s, r);
-        return sellerRepo.save(s);
+    Seller s = findSeller(id);
+    String status = orDefault(r.status(), s.getStatus());
+    check(SELLER_STATUS, status);
+
+    s.setStatusNote(
+            statusNote(status, s.getStatus(), r.statusNote(), s.getStatusNote(), false)
+    );
+    s.setStatus(status);
+
+    portalAccountRepo.findByProfileId(id).ifPresent(account -> {
+        account.setStatus(status);
+        portalAccountRepo.save(account);
+    });
+
+    applySeller(s, r);
+    if (s.getRestaurantId() != null) {
+        restaurantRepo.findById(s.getRestaurantId()).ifPresent(restaurant -> {
+            restaurant.setName(s.getName());
+            restaurant.setCuisines(s.getCuisine());
+            restaurant.setImageUrl(s.getImage());
+            if (s.getCity() != null && !s.getCity().isBlank()) {
+                restaurant.setArea(s.getCity());
+            }
+            restaurant.setOpen("ACTIVE".equalsIgnoreCase(s.getStatus()) && s.isOpen());
+            restaurantRepo.save(restaurant);
+        });
     }
+    return sellerRepo.save(s);
+}
 
     public synchronized void deleteSeller(String id) {
         sellerRepo.delete(findSeller(id));
@@ -290,11 +385,15 @@ private List<Order> allOrders() {
             case CANCELLED -> "CANCELLED";
         };
 
+        String sellerId = sellerRepo.findByRestaurantId(order.getRestaurantId())
+                .map(Seller::getId)
+                .orElse(null);
+
         Order adminOrder = new Order(
                 id,
                 customerId,
                 customerName,
-                null,
+                sellerId,
                 order.getRestaurantName(),
                 order.getRiderId(),
                 riderName,
@@ -328,8 +427,50 @@ private List<Order> allOrders() {
     private Customer customerById(String id) {
         Customer customer = data.customers.get(id);
         if (customer != null) return customer;
+        if (id.startsWith("U-")) {
+            try {
+                Long uid = Long.parseLong(id.substring(2));
+                User user = customerUserRepo.findById(uid).orElse(null);
+                if (user != null) return customerFromUser(user, allOrders());
+            } catch (NumberFormatException ignored) {
+                // Fall through to portalAccount lookup / 404.
+            }
+        }
         PortalAccount account = portalAccountRepo.findByProfileId(id).orElse(null);
         return find(account == null ? null : customerFromAccount(account, allOrders()), "Customer", id);
+    }
+
+    private Customer customerFromUser(User user, List<Order> allOrders) {
+        String rawId = String.valueOf(user.getId());
+        String displayId = "U-" + rawId;
+        List<Order> customerOrders = allOrders.stream()
+                .filter(order -> order.customerId().equals(rawId) || order.customerId().equals(displayId))
+                .toList();
+        double spent = customerOrders.stream()
+                .filter(order -> "DELIVERED".equals(order.status()))
+                .mapToDouble(Order::amount)
+                .sum();
+        String joined = user.getCreatedAt() == null
+                ? today()
+                : DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.ENGLISH)
+                        .withZone(ZoneId.systemDefault())
+                        .format(user.getCreatedAt());
+        String area = user.getLocationLabel() == null || user.getLocationLabel().isBlank()
+                ? "Visakhapatnam"
+                : user.getLocationLabel();
+        return new Customer(
+                displayId,
+                user.getName(),
+                user.getEmail(),
+                user.getPhone() == null ? "" : user.getPhone(),
+                null,
+                area,
+                area,
+                joined,
+                user.getStatus(),
+                customerOrders.size(),
+                spent
+        );
     }
 
     private Customer customerFromAccount(PortalAccount account, List<Order> allOrders) {

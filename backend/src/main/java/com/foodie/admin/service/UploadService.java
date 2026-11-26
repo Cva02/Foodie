@@ -49,9 +49,21 @@ public class UploadService {
         return save(file, "seller-documents", true);
     }
 
+    public String saveSellerGstDocument(MultipartFile file) {
+    return save(file, "seller-gst-documents", true);
+}
+
     public Resource restaurantImage(String fileName) {
         return resource("restaurants", fileName);
     }
+
+    public String saveMenuImage(MultipartFile file) {
+    return "/api/public/images/menu/" + save(file, "menu-images", false);
+}
+
+public Resource menuImage(String fileName) {
+    return resource("menu-images", fileName);
+}
 
     public Resource riderPhoto(String fileName) {
         return resource("rider-photos", fileName);
@@ -64,6 +76,10 @@ public class UploadService {
     public Resource sellerFssaiDocument(String fileName) {
         return resource("seller-documents", fileName);
     }
+
+    public Resource sellerGstDocument(String fileName) {
+    return resource("seller-gst-documents", fileName);
+}
 
     public MediaType mediaType(String fileName) {
         if (fileName.endsWith(".jpg")) return MediaType.IMAGE_JPEG;

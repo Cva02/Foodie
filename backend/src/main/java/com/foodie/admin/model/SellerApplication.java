@@ -1,3 +1,4 @@
+
 package com.foodie.admin.model;
 
 import jakarta.persistence.Column;
@@ -23,26 +24,47 @@ public class SellerApplication {
 
     @Column(nullable = false)
     private String restaurantName;
+
     @Column(nullable = false)
     private String ownerName;
+
     @Column(nullable = false)
     private String cuisine;
+
     @Column(nullable = false)
     private String phone;
+
     @Column(nullable = false, length = 1000)
     private String address;
-    @Column(nullable = false)
+
+    @Column
     private String city;
-    @Column(nullable = false)
+
+    @Column
     private String fssaiNumber;
+
     @Column(length = 1000)
     private String image;
+
     private String fssaiDocumentFileName;
+
+    private String gstDocumentFileName;
+
+    @Column(length = 34)
+    private String bankAccountNumber;
+
+    @Column(length = 11)
+    private String bankIfscCode;
+
+    @Column(length = 120)
+    private String bankAccountHolderName;
 
     @Column(nullable = false)
     private String status = "PENDING";
+
     @Column(length = 1000)
     private String reviewNote;
+
     private String sellerId;
 
     @Column(nullable = false)
@@ -51,9 +73,24 @@ public class SellerApplication {
     protected SellerApplication() {
     }
 
-    public SellerApplication(String id, String email, String passwordHash, String restaurantName,
-                             String ownerName, String cuisine, String phone, String address,
-                             String city, String fssaiNumber, String image, String fssaiDocumentFileName) {
+    public SellerApplication(
+            String id,
+            String email,
+            String passwordHash,
+            String restaurantName,
+            String ownerName,
+            String cuisine,
+            String phone,
+            String address,
+            String city,
+            String fssaiNumber,
+            String image,
+            String fssaiDocumentFileName,
+            String gstDocumentFileName,
+            String bankAccountNumber,
+            String bankIfscCode,
+            String bankAccountHolderName) {
+
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -66,6 +103,10 @@ public class SellerApplication {
         this.fssaiNumber = fssaiNumber;
         this.image = image;
         this.fssaiDocumentFileName = fssaiDocumentFileName;
+        this.gstDocumentFileName = gstDocumentFileName;
+        this.bankAccountNumber = bankAccountNumber;
+        this.bankIfscCode = bankIfscCode;
+        this.bankAccountHolderName = bankAccountHolderName;
         this.submittedAt = Instant.now();
     }
 
@@ -81,14 +122,31 @@ public class SellerApplication {
     public String getFssaiNumber() { return fssaiNumber; }
     public String getImage() { return image; }
     public String getFssaiDocumentFileName() { return fssaiDocumentFileName; }
+    public String getGstDocumentFileName() { return gstDocumentFileName; }
+    public String getBankAccountNumber() { return bankAccountNumber; }
+    public String getBankIfscCode() { return bankIfscCode; }
+    public String getBankAccountHolderName() { return bankAccountHolderName; }
     public String getStatus() { return status; }
     public String getReviewNote() { return reviewNote; }
     public String getSellerId() { return sellerId; }
     public Instant getSubmittedAt() { return submittedAt; }
 
-    public void resubmit(String passwordHash, String restaurantName, String ownerName,
-                         String cuisine, String phone, String address, String city,
-                         String fssaiNumber, String image, String fssaiDocumentFileName) {
+    public void resubmit(
+            String passwordHash,
+            String restaurantName,
+            String ownerName,
+            String cuisine,
+            String phone,
+            String address,
+            String city,
+            String fssaiNumber,
+            String image,
+            String fssaiDocumentFileName,
+            String gstDocumentFileName,
+            String bankAccountNumber,
+            String bankIfscCode,
+            String bankAccountHolderName) {
+
         this.passwordHash = passwordHash;
         this.restaurantName = restaurantName;
         this.ownerName = ownerName;
@@ -99,6 +157,10 @@ public class SellerApplication {
         this.fssaiNumber = fssaiNumber;
         this.image = image;
         this.fssaiDocumentFileName = fssaiDocumentFileName;
+        this.gstDocumentFileName = gstDocumentFileName;
+        this.bankAccountNumber = bankAccountNumber;
+        this.bankIfscCode = bankIfscCode;
+        this.bankAccountHolderName = bankAccountHolderName;
         this.status = "PENDING";
         this.reviewNote = null;
         this.sellerId = null;

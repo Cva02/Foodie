@@ -29,7 +29,16 @@ public class Rider {
     private String vehicleNumber;
     private String licenseNumber;
     private String city;
-    private String status;          // ONLINE | ON_DELIVERY | OFFLINE | PENDING | REJECTED | SUSPENDED
+
+    @Column(length = 13)
+private String servicePinCodes;
+
+    
+    private String status;
+          // ONLINE | ON_DELIVERY | OFFLINE | PENDING | REJECTED | SUSPENDED
+
+    private Double latitude;
+private Double longitude;
     @Column(length = 1000)
     private String statusNote;
     private double rating;
@@ -73,7 +82,10 @@ public class Rider {
     public String getVehicleNumber() { return vehicleNumber; }
     public String getLicenseNumber() { return licenseNumber; }
     public String getCity() { return city; }
-    public String getStatus() { return status; }
+public String getServicePinCodes() { return servicePinCodes; }
+public String getStatus() { return status; }
+public Double getLatitude() { return latitude; }
+public Double getLongitude() { return longitude; }
     public String getStatusNote() { return statusNote; }
     public double getRating() { return rating; }
     public int getTotalDeliveries() { return totalDeliveries; }
@@ -91,4 +103,37 @@ public class Rider {
     public void setCity(String city) { this.city = city; }
     public void setStatus(String status) { this.status = status; }
     public void setStatusNote(String statusNote) { this.statusNote = statusNote; }
+    public void setTotalDeliveries(int totalDeliveries) { this.totalDeliveries = totalDeliveries; }
+    public void setEarnings(double earnings) { this.earnings = earnings; }
+
+    public void setServicePinCodes(String servicePinCodes) {
+    this.servicePinCodes = servicePinCodes;
+}
+
+public boolean servesPinCode(String pinCode) {
+    if (pinCode == null || servicePinCodes == null) return false;
+
+    for (String servicePinCode : servicePinCodes.split(",")) {
+        if (servicePinCode.trim().equals(pinCode.trim())) return true;
+    }
+
+    return false;
+}
+
+public void updateLocation(double latitude, double longitude) {
+    this.latitude = latitude;
+    this.longitude = longitude;
+}
+
+    public void updateProfile(String name, String phone, String vehicle,
+                          String vehicleNumber, String licenseNumber,
+                          String city, String servicePinCodes) {
+    this.name = name;
+    this.phone = phone;
+    this.vehicle = vehicle;
+    this.vehicleNumber = vehicleNumber;
+    this.licenseNumber = licenseNumber;
+    this.city = city;
+    this.servicePinCodes = servicePinCodes;
+}
 }

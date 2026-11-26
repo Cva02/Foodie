@@ -16,6 +16,19 @@ import RiderDetail from "./pages/RiderDetail.jsx";
 import PartnerApplicationsPage from "./pages/PartnerApplicationsPage.jsx";
 import LiveOrders from "./pages/LiveOrders.jsx";
 
+// Seller components
+import SellerLogin from "./seller/pages/Login.jsx";
+import SellerRegister from "./seller/pages/Register.jsx";
+import SellerDashboard from "./seller/pages/Dashboard.jsx";
+import SellerLayout from "./seller/components/SellerLayout.jsx";
+import SellerProtected from "./seller/components/SellerProtected.jsx";
+import SellerMenuPage from "./seller/pages/MenuPage.jsx";
+import SellerOrdersPage from "./seller/pages/OrdersPage.jsx";
+import SellerProfilePage from "./seller/pages/ProfilePage.jsx";
+
+// Rider portal
+import RiderAccessPage from "./pages/RiderAccessPage.jsx";
+
 // Customer components
 import Navbar from "./components/Navbar.jsx";
 import BottomNav from "./components/BottomNav.jsx";
@@ -93,6 +106,23 @@ export default function App() {
           <Route path="riders/:id" element={<RiderDetail />} />
           <Route path="orders" element={<LiveOrders />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Route>
+      </Route>
+
+	{/* RIDER PORTAL */}
+<Route path="/rider" element={<RiderAccessPage />} />
+
+	      {/* SELLER PORTAL */}
+      <Route path="/seller/login" element={<SellerLogin />} />
+      <Route path="/seller/register" element={<SellerRegister />} />
+      
+
+      <Route path="/seller" element={<SellerProtected />}>
+        <Route element={<SellerLayout />}>
+          <Route index element={<SellerDashboard />} />
+	  <Route path="menu" element={<SellerMenuPage />} />
+	  <Route path="orders" element={<SellerOrdersPage />} />
+	  <Route path="profile" element={<SellerProfilePage />} />
         </Route>
       </Route>
 

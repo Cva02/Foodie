@@ -1,3 +1,4 @@
+
 package com.foodie.admin.dto;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ public record SellerApplicationView(
         String fssaiNumber,
         String image,
         boolean hasFssaiDocument,
+        boolean hasGstDocument,
         String status,
         String reviewNote,
         String sellerId,

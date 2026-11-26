@@ -38,4 +38,10 @@ public class CustomerOrderController {
                            @RequestBody(required = false) CancelReq req) {
         return orders.cancel(uid, id, req == null ? null : req.reason());
     }
+
+    @PostMapping("/{id}/rider-rating")
+    public OrderDto rateRider(@RequestAttribute("uid") Long uid, @PathVariable Long id,
+                              @Valid @RequestBody RiderRatingReq req) {
+        return orders.rateRider(uid, id, req.rating());
+    }
 }

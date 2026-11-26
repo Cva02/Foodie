@@ -34,6 +34,9 @@ public class RiderApplication {
     @Column(nullable = false)
     private String city;
 
+    @Column(length = 13)
+private String servicePinCodes;
+
     private String photoFileName;
     private String licenseFileName;
 
@@ -50,8 +53,8 @@ public class RiderApplication {
     }
 
     public RiderApplication(String id, String email, String passwordHash, String name, String phone,
-                            String vehicle, String vehicleNumber, String licenseNumber, String city,
-                            String photoFileName, String licenseFileName) {
+                        String vehicle, String vehicleNumber, String licenseNumber, String city,
+                        String servicePinCodes, String photoFileName, String licenseFileName) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -62,6 +65,7 @@ public class RiderApplication {
         this.licenseNumber = licenseNumber;
         this.city = city;
         this.photoFileName = photoFileName;
+	this.servicePinCodes = servicePinCodes;
         this.licenseFileName = licenseFileName;
         this.submittedAt = Instant.now();
     }
@@ -76,6 +80,7 @@ public class RiderApplication {
     public String getLicenseNumber() { return licenseNumber; }
     public String getCity() { return city; }
     public String getPhotoFileName() { return photoFileName; }
+    public String getServicePinCodes() { return servicePinCodes; }
     public String getLicenseFileName() { return licenseFileName; }
     public String getStatus() { return status; }
     public String getReviewNote() { return reviewNote; }
@@ -83,8 +88,9 @@ public class RiderApplication {
     public Instant getSubmittedAt() { return submittedAt; }
 
     public void resubmit(String passwordHash, String name, String phone, String vehicle,
-                         String vehicleNumber, String licenseNumber, String city,
-                         String photoFileName, String licenseFileName) {
+                     String vehicleNumber, String licenseNumber, String city,
+                     String servicePinCodes, String photoFileName, String licenseFileName) {
+
         this.passwordHash = passwordHash;
         this.name = name;
         this.phone = phone;
@@ -93,6 +99,7 @@ public class RiderApplication {
         this.licenseNumber = licenseNumber;
         this.city = city;
         this.photoFileName = photoFileName;
+	this.servicePinCodes = servicePinCodes;
         this.licenseFileName = licenseFileName;
         this.status = "PENDING";
         this.reviewNote = null;

@@ -34,6 +34,23 @@ public class NotificationService {
         repo.save(n);
     }
 
+    /** Rider-side notification. */
+public void toRider(
+        String riderId,
+        String type,
+        String title,
+        String message,
+        Long orderId
+) {
+    Notification n = new Notification();
+    n.setRiderId(riderId);
+    n.setType(type);
+    n.setTitle(title);
+    n.setMessage(message);
+    n.setOrderId(orderId);
+    repo.save(n);
+}
+
     @Transactional(readOnly = true)
     public List<NotificationDto> list(Long userId) {
         return repo.findByUserIdOrderByIdDesc(userId).stream().limit(100)

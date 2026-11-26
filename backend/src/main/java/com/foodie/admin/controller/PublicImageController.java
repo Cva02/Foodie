@@ -33,6 +33,11 @@ public class PublicImageController {
         return image(uploads.riderPhoto(fileName), fileName);
     }
 
+    @GetMapping("/menu/{fileName}")
+public ResponseEntity<Resource> menuImage(@PathVariable String fileName) {
+    return image(uploads.menuImage(fileName), fileName);
+}
+
     private ResponseEntity<Resource> image(Resource resource, String fileName) {
         return ResponseEntity.ok()
                 .contentType(uploads.mediaType(fileName))

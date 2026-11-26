@@ -20,6 +20,8 @@ public class Seller {
     @Id
     @Column(length = 20)
     private String id;
+    @Column(name = "restaurant_id")
+private Long restaurantId;
     private String name;            // restaurant name
     private String ownerName;
     @Column(length = 1000)
@@ -74,6 +76,8 @@ public class Seller {
     }
 
     public String getId() { return id; }
+    public Long getRestaurantId() { return restaurantId; }
+public void setRestaurantId(Long restaurantId) { this.restaurantId = restaurantId; }
     public String getName() { return name; }
     public String getOwnerName() { return ownerName; }
     public String getOwnerAvatar() { return ownerAvatar; }
@@ -111,4 +115,6 @@ public class Seller {
     public void setStatus(String status) { this.status = status; }
     public void setStatusNote(String statusNote) { this.statusNote = statusNote; }
     public void setOpen(boolean open) { this.open = open; }
+    public void setTotalOrders(int totalOrders) { this.totalOrders = totalOrders; }
+    public void setRevenue(double revenue) { this.revenue = revenue; }
 }
